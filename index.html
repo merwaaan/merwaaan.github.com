@@ -1,0 +1,30 @@
+---
+layout: default
+title: Blog
+---
+
+<h2>Articles</h2>
+<ul id="articles">
+  {% for post in site.posts %}
+  <li>
+    <span class="date">{{ post.date | date_to_string }}</span>
+    <a href="{{ post.url }}">{{ post.title }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+<h2>Projects</h2>
+<ul id="projects">
+  <li>
+    <a href="http://github.com/merwaaan/scores">Scores</a>
+    — blah
+  </li>
+  <li>
+    <a href="http://github.com/fmdkdd/spacewar">Spacewar</a>
+    — blah
+  </li>
+  <li>
+    <a href="http://github.com/merwaaan/tperigidbody">Physics</a>
+    — blah
+  </li>
+</ul>

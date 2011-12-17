@@ -1,0 +1,28 @@
+---
+layout: default
+---
+
+<article>
+
+  <header>
+    <h2>{{ page.title }}</h2>
+    <span class="date">{{ page.date | date_to_string }}</span>
+  </header>
+
+  <div>
+    {{ content }}
+  </div>
+
+  <footer>
+
+    {% if page.next.title != null %}
+    <a href="{{ page.next.url }}" class="next">↩ {{ page.next.title }}</a>
+    {% endif %}
+
+    {% if page.previous.title != null %}
+    <a href="{{ page.previous.url }}" class="previous">{{ page.previous.title }} ↪</a>
+    {% endif %}
+
+  </footer>
+
+</article>

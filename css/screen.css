@@ -1,0 +1,122 @@
+@import url(http://fonts.googleapis.com/css?family=Enriqueta);
+@import url(http://fonts.googleapis.com/css?family=Lobster+Two:400,400italic,700,700italic);
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	width: 100%;
+	font-family: Enriqueta, serif;
+}
+
+a {
+	text-decoration: none;
+	color: black;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+body > header {
+	margin-top: 1em;
+}
+
+body > header h1 {
+	margin-left: 25%;
+	-webkit-transform: rotate(-5deg);
+	position: relative;
+	top: -0.6em;
+	right: 1em;
+}
+
+body > header h1 a {
+	font-family: "Lobster Two";
+	font-size: 1.6em;
+	font-weight: normal;
+	color: #556270;
+}
+
+body > header h1 a:hover {
+	text-decoration: none;
+}
+
+body > footer {
+	float: right;
+	margin-right: 25%;
+	margin-bottom: 1em;
+}
+
+body > footer a {
+	padding: 0.2em;
+}
+
+#main {
+	clear: both;
+	width: 50%;
+	margin: auto;
+	padding: 0.7em;
+	background: white;
+	border: 1px solid #DDD;
+	box-shadow: 0 0 15px #DDD;
+}
+
+#content {
+	border: 1px solid rgba(85, 98, 112, 0.1);
+	padding: 1em;
+	padding-top: 3em;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+article {
+	overflow: auto;
+}
+
+article footer {
+	margin-top: 2em;
+	margin-bottom: 1em;
+}
+
+article footer {
+	font-size: 0.8em;
+}
+
+article footer a.next, article footer a.previous {
+	padding: 0.3em;
+	color: white;
+	background: #556270;
+}
+
+article footer .next{
+	float: left;
+}
+
+article footer .previous{
+	float: right;
+}
+
+h2 {
+	display: inline;
+	color: #556270;
+	margin-right: 0.5em;
+}
+
+h3 {
+	font-weight: normal;
+}
+
+ul {
+	margin-top: 1em;
+	margin-bottom: 2em;
+	list-style-type: none;
+}
+
+.date {
+	color: grey;
+	font-size: 0.85em;
+}
