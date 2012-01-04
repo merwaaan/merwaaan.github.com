@@ -4,27 +4,29 @@ title: Blog
 ---
 
 <h2>Articles</h2>
-<ul id="articles">
+
+<table id="articles">
   {% for post in site.posts %}
-  <li>
-    <span class="date">{{ post.date | date_to_string }}</span>
-    <a href="{{ post.url }}">{{ post.title }}</a>
-  </li>
+  <tr>
+    <td class="soft">{{ post.date | date_to_string }}</td>
+    <td><a href="{{ post.url }}">{{ post.title }}</a></td>
+  </tr>
   {% endfor %}
-</ul>
+</table>
 
 <h2>Projects</h2>
 <ul id="projects">
   <li>
     <a href="http://github.com/merwaaan/scores">Scores</a>
-    — blah
+    <span class="soft">— A HTML5 musical sheet editor</span>
   </li>
   <li>
     <a href="http://github.com/fmdkdd/spacewar">Spacewar</a>
-    — blah
+    <span class="soft">— A multiplayer space shooter powered by
+    HTML5, Node and Socket IO</span>
   </li>
   <li>
     <a href="http://github.com/merwaaan/tperigidbody">Physics</a>
-    — blah
+    <span class="soft">— A physic engine simulating rigid body behaviours in a three-dimensional environment</span>
   </li>
 </ul>
