@@ -5,6 +5,10 @@
     <meta name="author" content="Merwan Achibet" />
     <title>{{ page.title }} — Merwan Achibet</title>
     <link rel="stylesheet" href="/css/screen.css" />
+
+    {% for item in page.js %}
+    <script src="/utils/{{ item }}.js"></script>
+    {% endfor %}
   </head>
   <body>
 
