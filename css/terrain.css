@@ -1,0 +1,14 @@
+.try {
+	width: 785px;
+	margin: auto;
+	line-height: 500px;
+}
+
+.try canvas {
+	border: 1px solid grey;
+	vertical-align: middle;
+}
+
+.try canvas:nth-child(1) {
+	margin-right: 25px;
+}
