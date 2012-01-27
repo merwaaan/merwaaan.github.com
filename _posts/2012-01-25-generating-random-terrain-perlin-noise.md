@@ -2,6 +2,7 @@
 layout: post
 title: "Generating Random Terrain: Perlin Noise"
 js: [jquery, three, perlin]
+css: [terrain]
 published: false
 ---
 
@@ -32,8 +33,11 @@ value (or pixel), we assign a random float between 0 and 1. Without
 surprise, the result is a bit disappointing. What we need is
 continuity between the heights of neighbor vertices.
 
-<div id="try1">
+<div class="try" id="try1">
 </div>
 
-<div id="try2">
+<div class="try" id="try2">
+</div>
+
+<div class="try" id="try3">
 </div>
