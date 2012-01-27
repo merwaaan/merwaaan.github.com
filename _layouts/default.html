@@ -6,9 +6,14 @@
     <title>{{ page.title }} — Merwan Achibet</title>
     <link rel="stylesheet" href="/css/screen.css" />
 
-    {% for item in page.js %}
-    <script src="/utils/{{ item }}.js"></script>
+    {% for item in page.css %}
+    <link rel="stylesheet" href="/css/{{ item }}.css"/>
     {% endfor %}
+
+    {% for item in page.js %}
+    <script type="text/javascript" src="/utils/{{ item }}.js"></script>
+    {% endfor %}
+
   </head>
   <body>
 
