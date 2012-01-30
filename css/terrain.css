@@ -1,14 +1,28 @@
 .try {
-	width: 785px;
-	margin: auto;
-	line-height: 500px;
+    width: 725px;
+    height: 450px;
+    padding: 50px;
+    line-height: 450px;
+    margin: 2em auto;
+    border: 6px solid #3F4C59;
+}
+
+.try.notClicked {
+    background: #556270;
+}
+
+.try p {
+    text-align: center;
+    font-size: 60px;
+    font-family: "Lobster Two";
+    color: white;
 }
 
 .try canvas {
-	border: 1px solid grey;
-	vertical-align: middle;
+    border: 1px solid grey;
+    vertical-align: middle;
 }
 
 .try canvas:nth-child(1) {
-	margin-right: 25px;
+    margin-right: 50px;
 }

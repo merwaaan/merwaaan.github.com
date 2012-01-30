@@ -63,6 +63,7 @@ body > header h1 a:hover {
 
 article {
 	overflow: auto;
+	max-width: 1000px;
 }
 
 article footer {
@@ -92,17 +93,27 @@ article > div {
 }
 
 article h3 {
+	margin-top: 2em;
 	margin-bottom: 1em;
+	padding-left : 25px;
+	font-weight: bold;
+	color: #556270;
+	background: url("/favicon.ico") no-repeat left center;
 }
 
-article p {
-	margin-bottom: 0.5em;
+article > div > p {
+	margin-bottom: 1em;
+	line-height: 1.8em;
 	text-indent: 1.4em;
 	text-align: justify;
 }
 
 article a {
-	text-decoration: underline;
+	border-bottom: 3px solid #556270;
+}
+
+article a:hover {
+	text-decoration: none;
 }
 
 #articles, #projects {
