@@ -5,22 +5,28 @@ var time = 0;
 
 var data = {};
 
+function linear(a, b, x) {
+
+   return a * (1 - x) + x * b;
+}
+
+function cosine(a, b, x) {
+
+   var y = (1 - Math.cos(x * Math.PI)) / 2;
+
+   return a * (1 - y) + b * y;
+}
+
+var interpolate = cosine;
+
 function randomNoise() {
 
    var array = [];
 
-   for(var i = 0, l = size * size; i < l; ++i)
+   for(var i = 0; i < size2; ++i)
 		array[i] = Math.random();
 
    return array;
-}
-
-function interpolate(x0, x1, blend) {
-
-   //return x0 * (1 - blend) + blend * x1;
-
-   var blend2 = (1 - Math.cos(blend * Math.PI)) / 2;
-   return x0 * (1 - blend2) + x1 * blend2;
 }
 
 function octave(k, source) {
@@ -28,7 +34,7 @@ function octave(k, source) {
    var wavelength = Math.pow(2, k);
    var frequency = 1 / wavelength;
 
-   var array = [];
+   var result = [];
 
    for(var i = 0; i < size; ++i) {
 
@@ -52,43 +58,54 @@ function octave(k, source) {
 				source[i1 * size + j1],
 				blend_j);
 
-			array[i * size + j] = interpolate(top, bottom, blend_i);
+			result[i * size + j] = interpolate(top, bottom, blend_i);
 		}
    }
 
-   return array;
+   return result;
 }
 
-function perlinNoise(noise) {
+function valueNoise(noise) {
 
-   var arrays = [noise];
+	// Generate and store octaves.
 
-   for(var i = 1; i < 7; ++i)
-		arrays.push(octave(i, noise));
+   var octaves = [noise];
 
-   arrays.reverse();
+   for(var i = 1; i < 6; ++i)
+		octaves[i] = octave(i, noise);
 
-   var perlin = [];
-   for(var i in noise)
-		perlin.push(0);
+   octaves.reverse();
 
-   var amplitude = 1;
-   var sumAmplitude = 0;
+	// Initialize the result grid with values from the last octave.
 
-   for(var k = 0; k < arrays.length; ++k) {
+   var result = [];
+
+   for(var i in octaves[0])
+		result[i] = octaves[0][i];
+
+	// Add each other octaves with respect to the persistence.
+
+   var persistence = 0.4;
+	var amplitude = 1;
+   var sumAmplitude = amplitude;
+
+   for(var i = 1; i < octaves.length; ++i) {
+
+		// Decrease the amplitude.
+		amplitude = Math.pow(persistence, i);
+
+		for(var j in result)
+			result[j] += octaves[i][j] * amplitude;
 
 		sumAmplitude += amplitude;
-
-		for(var i in perlin)
-			perlin[i] += arrays[k][i] * amplitude;
-
-		amplitude *= 0.4;
    }
 
-   for(var i in perlin)
-		perlin[i] /= sumAmplitude;
+	// Normalize the height values.
 
-   return perlin;
+   for(var i in result)
+		result[i] /= sumAmplitude;
+
+   return result;
 }
 
 function insertDemo(container, heightMap) {
@@ -99,7 +116,7 @@ function insertDemo(container, heightMap) {
    container.click(function() {
 
 		drawHeightMap(container, heightMap);
-		drawTerrain(container, heightMap, false);
+		drawTerrain(container, heightMap, true);
 
 		container.unbind('click');
    });
@@ -145,7 +162,7 @@ function drawTerrain(container, noise, blocks) {
    var material = new THREE.MeshLambertMaterial({
 		color: 0x00AA00
    });
-   blocks = true;
+
    if(blocks) {
 
 		var terrainGeo = new THREE.Geometry();
@@ -206,7 +223,7 @@ function animate() {
 
    window.requestAnimationFrame(animate);
 
-   time += 0.003;
+   time += 0.001;
 
    var sint = Math.sin(time) * 200;
    var cost = Math.cos(time) * 200;
@@ -226,6 +243,6 @@ $(function() {
    var noise = randomNoise();
 
    insertDemo($('#try1'), noise);
-   insertDemo($('#try2'), octave(4, noise));
-   insertDemo($('#try3'), perlinNoise(noise));
+   insertDemo($('#try2'), octave(5, noise));
+   insertDemo($('#try3'), valueNoise(noise));
 });

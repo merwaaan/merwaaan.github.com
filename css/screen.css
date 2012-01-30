@@ -108,12 +108,21 @@ article > div > p {
 	text-align: justify;
 }
 
+article ul li {
+	list-style-type: square;
+}
+
 article a {
 	border-bottom: 3px solid #556270;
 }
 
 article a:hover {
 	text-decoration: none;
+}
+
+article em {
+	font-family: serif;
+	font-style: italic;
 }
 
 #articles, #projects {

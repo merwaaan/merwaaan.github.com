@@ -34,7 +34,7 @@ often persistently stored as images which is convenient as you just
 need to open them in any image viewer to have an idea of the
 appearance of a terrain. Of course, the previous principle is still
 valid with colors: black (RGB\[0,0,0]) means lowest, white
-(RGB\[255,255,255]) means highest, any shade of grey in between is
+(RGB\[255,255,255]) means highest and any shade of grey in between is
 proportionally high.
 
 Height maps have some downsides though. As the idea is to extrapolate
@@ -55,11 +55,11 @@ corresponding terrain.
 Well, without surprise, the result is a bit disappointing. We obtain a
 grassy-looking terrain, far from anything we could find in real
 life. This terrain lacks two features. Firstly, it needs
-**continuity**. In a real landscape, we cannot find such variations
+**continuity**. In a real landscape, we could not find such variations
 (except with some [unique geological
 formations](http://en.wikipedia.org/wiki/Giant's_Causeway)). There is
-too much height difference between neighbor vertices, it's too
-abrupt, not smooth enough.
+too much height difference between neighbor vertices, it's too abrupt,
+not smooth enough.
 
 Secondly, it lacks **several levels of precision**. Imagine for a
 moment that we solved the first issue by only giving random values to
@@ -73,36 +73,40 @@ merely observe the general outline. If you walk closer, some hills and
 valleys start to appear. When you're on the mountain itself, you can
 see very tiny details, small holes, rocks. To give a natural feel, we
 need to capture variations at both the macroscopic and microscopic
-level.
+levels.
 
 This is when value noise (not to be confused with [Perlin
 noise](http://www.noisemachine.com/talk1/)) comes into play. The
-method described below let us generate a more natural-looking terrain.
+steps described below let us generate a more natural-looking terrain:
 
-The principle of value noise can be summed up with these simple steps:
++ Sample *n* regular subsets of pixels (where subset *n* contains
+every *2<sup>n</sup>*-th pixel)
 
-1. Sample n regular subsets of pixels (where subset n contains every 2^i pixel)
-2. Fill the gaps between the selected pixels with some kind of interpolation
-3. Sum up each layer with an appropriate weight to obtain the final height map
++ Fill the gaps between the selected pixels
+with some kind of interpolation
+
++ Sum up each layer with an
+appropriate weight to obtain the final height map
 
 ### Sampling
 
 Sampling the original random noise at different levels provides us the
 several layers of precision needed.  Each of these sampled maps is
 called an octave and is associated with a number starting from
-0. Octave i contains every 2^i pixels of the original image. This
-forms a grid of squares, each sampled points being corners of those
-squares.
+*0*. Octave *i* contains every *2<sup>i</sup>* pixels of the original
+height map. This forms a grid of squares, each sampled points being
+corners of those squares.
 
 IMAGE
 
-### Filling
+### Filling the gaps
 
 For the moment, an octave is mainly empty, apart from the sampled
 points and we need to determine the value of absent pixels. Let's say
-we want to compute the value of pixel P of a given octave. To do that,
-we simply find in which grid square P is and interpolate the values of
-its corners with respect to the distance from P to each corner.
+we want to compute the value of pixel *P* of a given octave. To do
+that, we simply find in which grid square *P* is and interpolate the
+values of its corners with respect to the distance from *P* to each
+corner.
 
 We can use several kind of interpolation. The simplest is linear
 interpolation; efficient in terms of speed but the result can be a bit
@@ -112,14 +116,9 @@ function linear(a, b, x) {
   return a + (b - a) * x;
 }
 
+Then there is cosine interpolation.
+
 function square(a, b, x) {
-
-}
-
-Then there is cubic interpolation, I don't personnaly think that the
-quality difference on the final rendering is worth it though.
-
-function cubic(a, b, x) {
 
 }
 
@@ -130,7 +129,9 @@ C2) and (C3 and C4) which gives the values of points respectively at
 the top and bottom lines of the square. Then we interpolate these two
 intermediate points.
 
-IMAGE
+IMAGE OCTAVES
+
+DEMO OCTAVE
 
 ### Summing up
 
