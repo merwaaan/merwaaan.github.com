@@ -3,7 +3,7 @@ layout: post
 title: "Generating Random Terrain: Value Noise"
 js: [jquery, three, value]
 css: [terrain]
-published: false
+published: true
 ---
 
 ### Motivation

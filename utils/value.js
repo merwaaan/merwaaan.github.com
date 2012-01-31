@@ -1,3 +1,17 @@
+var webGLCapable = false;
+
+function checkWebGL() {
+
+	if(!window.WebGLRenderingContext)
+		return false;
+
+	var canvas = $('<canvas></canvas>').appendTo('body');
+	if(!canvas[0].getContext('webgl'))
+		return false;
+
+	return true;
+}
+
 var size = 150;
 var size2 = size * size;
 
@@ -139,7 +153,7 @@ function drawHeightMap(container, noise) {
 
 function drawTerrain(container, noise, blocks) {
 
-   var renderer = new THREE.WebGLRenderer();
+   var renderer = webGLCapable ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
    renderer.setSize(500, 400);
 
    container.append(renderer.domElement);
@@ -205,7 +219,10 @@ function drawTerrain(container, noise, blocks) {
    container.removeClass('notClicked');
    $('p', container).remove();
 
-   animate();
+	if(webGLCapable)
+		animate();
+	else
+		renderer.render(scene, camera);
 }
 
 window.requestAnimationFrame = (function(){
@@ -239,6 +256,8 @@ function animate() {
 }
 
 $(function() {
+
+	webGLCapable = checkWebGL();
 
    var noise = randomNoise();
 
