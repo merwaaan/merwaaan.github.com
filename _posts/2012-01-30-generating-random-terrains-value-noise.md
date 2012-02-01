@@ -1,9 +1,10 @@
 ---
 layout: post
 title: "Generating Random Terrain: Value Noise"
+published: true
+comments: true
 js: [three, terrain/base, terrain/value]
 css: [terrain]
-published: true
 ---
 
 ### Motivation
@@ -39,7 +40,7 @@ proportionally high.
 
 Height maps have some downsides though. As the idea is to extrapolate
 a third dimension model from two-dimensionnal data, you can only
-change vertices y coordinates (pull them upward or push them
+change vertices y-coordinates (pull them upward or push them
 downward). Thus certain features, such as overhangs or caverns are not
 representable.
 
