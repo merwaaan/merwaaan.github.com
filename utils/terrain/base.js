@@ -22,7 +22,7 @@ var data = {};
 function insertDemo(container, task) {
 
    container.addClass('notClicked');
-   container.append('<p>Click and be patient ...</p>');
+   container.append('<p>Click and be patient...</p>');
 
    container.click(function() {
 
@@ -56,6 +56,24 @@ function drawHeightMap(container, noise) {
 			ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
 
 			ctxt.fillRect(j, i, 1, 1);
+		}
+}
+
+function drawHeightMapSampling(container, noise, k) {
+
+	var wavelength = Math.pow(2, k);
+
+   var canvas = $('<canvas width="' + size + '" height="' + size + '"></canvas>').appendTo(container);
+   var ctxt = canvas[0].getContext('2d');
+
+   for(var i = 0; i < size; ++i)
+		for(var j = 0; j < size; ++j) {
+
+			if(i % wavelength == 0 && j % wavelength == 0) {
+
+				ctxt.fillStyle = 'rgb(255,0,0)';
+				ctxt.fillRect(j, i, 1, 1);
+			}
 		}
 }
 
