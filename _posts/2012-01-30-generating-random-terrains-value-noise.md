@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Generating Random Terrain: Value Noise"
-js: [jquery, three, terrain/base, terrain/value]
+js: [three, terrain/base, terrain/value]
 css: [terrain]
 published: true
 ---
@@ -20,8 +20,8 @@ For the following examples, I am using the [HTML5
 canvas](https://developer.mozilla.org/en/Canvas_tutorial) to draw
 height maps and [Three.js](https://github.com/mrdoob/three.js/) with a
 WebGL renderer to display the resulting terrains. If your browser
-doesn't support one of these technologies, static images are displayed
-instead. But be advised, you're missing on some fancy animating here!
+doesn't support WebGL, a canvas is displayed instead. But be advised,
+you're missing on some fancy animating here!
 
 ### The stuff
 
