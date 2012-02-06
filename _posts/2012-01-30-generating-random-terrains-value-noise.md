@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Generating Random Terrain: Value Noise"
-published: true
+published: false
 comments: true
 js: [three, terrain/base, terrain/value]
 css: [terrain]
