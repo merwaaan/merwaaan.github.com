@@ -1,6 +1,6 @@
 var webGLCapable = false;
 
-var size = 100;
+var size = 150;
 var size2 = size * size;
 
 var time = 0;
@@ -15,27 +15,46 @@ function insertDemo($container, task) {
    var id = $container.attr('id');
    data[id] = {};
 	data[id].map = [];
-
-	buildHeightMap($container);
-	buildTerrain($container);
+	data[id].toDraw = [];
 
    $container.click(function() {
 
+		// Prepare a canvas and set up the 3D scene.
+		buildHeightMap($container);
+		buildTerrain($container);
+
+		$container.removeClass('notClicked');
+		$('p', $container).remove();
+
 		var worker = new Worker('/utils/terrain/worker.js');
 
+		task.size = size;
 		task.index = 0;
 
 		worker.onmessage = function(event) {
 
-			data[id].map.push(event.data.height);
+			var height = event.data.height;
 
-			updateHeightMap($container);
-			updateTerrain($container);
+			data[id].toDraw.push(height);
 
-			// Process the next pixel.
+			if(data[id].toDraw.length > 5) {
+
+				// Update the canvas and the 3D scene.
+				updateHeightMap($container);
+				//updateTerrain($container);
+
+				// Move pixels to draw to the drawn list.
+				for(var i in data[id].toDraw)
+					data[id].map.push(data[id].toDraw[i]);
+				data[id].toDraw = [];
+			}
+
+			// Process the next pixels.
 			++task.index;
 			if(task.index < size2)
 				worker.postMessage(task);
+			else
+				worker.terminate();
 		};
 
 		worker.postMessage(task);
@@ -58,18 +77,26 @@ function updateHeightMap($container) {
 
 	var id = $container.attr('id');
 
-	var map = data[id].map;
-	var height = map[map.length - 1];
 	var ctxt = data[id].ctxt;
 
-	// Compute the pixel color.
-	var c = Math.floor(height * 255);
-	ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
+	var map = data[id].map;
+	var toDraw = data[id].toDraw;
 
-	// Draw.
-	var x = map.length % size;
-	var y = Math.floor(map.length / size);
-	ctxt.fillRect(x, y, 1, 1);
+	for(var i = 0; i < toDraw.length; ++i) {
+
+		var height = toDraw[i];
+
+		// Compute the pixel color.
+		var c = Math.floor(height * 255);
+		ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
+
+		// Compute the pixel position.
+		var index = map.length + i;
+		var x = index % size;
+		var y = Math.floor(index / size);
+
+		ctxt.fillRect(x, y, 1, 1);
+	}
 }
 
 function buildTerrain($container) {
@@ -100,22 +127,13 @@ function buildTerrain($container) {
 		color: 0x00AA00
    });
 
-	var terrainGeometry = new THREE.Geometry();
-
    // Store specific data.
    data[id].renderer = renderer;
    data[id].scene = scene;
    data[id].camera = camera;
 	data[id].material = material;
-	data[id].geometry = terrainGeometry;
 
-   $container.removeClass('notClicked');
-   $('p', $container).remove();
-
-	if(webGLCapable)
-		animate();
-	else
-		renderer.render(scene, camera);
+	data[id].slices = [];
 }
 
 function updateTerrain($container) {
@@ -123,40 +141,41 @@ function updateTerrain($container) {
    var id = $container.attr('id');
 
 	var map = data[id].map;
-	var height = map[map.length - 1];
-	var index = map.length - 1;
+	var toDraw = data[id].toDraw;
 
 	var scene = data[id].scene;
 	var camera = data[id].camera;
 	var material = data[id].material;
-	var terrainGeometry = data[id].geometry;
 
-	scene.remove(data[id].mesh);
+	var slices = data[id].slices;
 
+	var sliceGeometry = new THREE.Geometry();
 	var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
 
-	var cubeMesh = new THREE.Mesh(cubeGeometry, material);
-	cubeMesh.scale.y = Math.floor(height * 30);
-	cubeMesh.position.x = index % size - size / 2;
-	cubeMesh.position.y = cubeMesh.scale.y / 2;
-	cubeMesh.position.z = Math.floor(index / size) - size / 2;
+	for(var i = 0; i < toDraw.length; ++i) {
 
-	THREE.GeometryUtils.merge(terrainGeometry, cubeMesh);
+		var height = toDraw[i];
 
-	var terrainMesh = new THREE.Mesh(terrainGeometry, material);
-	terrainMesh.rotation.y = Math.PI / 4;
+		var index = map.length + i;
+		var x = index % size;
+		var y = Math.floor(index / size);
 
-	scene.add(terrainMesh);
+		var cubeMesh = new THREE.Mesh(cubeGeometry, material);
+		cubeMesh.scale.y = Math.floor(height * 30);
+		cubeMesh.position.x = x - size / 2;
+		cubeMesh.position.y = cubeMesh.scale.y / 2;
+		cubeMesh.position.z = y - size / 2;
 
-	--x;
-	if(x == 0) {
-		data[id].renderer.render(scene, camera);
-		x = 1000;
+		THREE.GeometryUtils.merge(sliceGeometry, cubeMesh);
 	}
 
-	data[id].mesh = terrainMesh;
+	var sliceMesh = new THREE.Mesh(sliceGeometry, material);
+	sliceMesh.rotation.y = Math.PI / 4;
+
+	scene.add(sliceMesh);
+
+	data[id].renderer.render(scene, camera);
 }
-var x = 1000; //TODO
 
 window.requestAnimationFrame = (function(){
    return window.requestAnimationFrame ||
@@ -190,7 +209,7 @@ function animate() {
 
 $(function() {
 
-	webGLCapable = (function checkWebGL() {
+	webGLCapable = (function() {
 
 		if(!window.WebGLRenderingContext)
 			return false;

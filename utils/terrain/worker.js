@@ -1,7 +1,7 @@
-var size = 100;
-var size2 = size * size;
+var size = null;
+var size2 = null;
 
-var randomSource = null;
+var source = null;
 
 function linear(a, b, x) {
 
@@ -15,7 +15,7 @@ function cosine(a, b, x) {
    return a * (1 - y) + b * y;
 }
 
-var interpolate = linear;
+var interpolate = cosine;
 
 function randomNoise() {
 
@@ -33,14 +33,14 @@ function octave(k, source, x, y) {
    var frequency = 1 / wavelength;
 
 	// Compute corner points.
-
-	var y0 = Math.floor(y / wavelength) * wavelength;
-	var y1 = (y0 + wavelength) % size;
-	var blend_y = (y - y0) * frequency;
-
 	var x0 = Math.floor(x / wavelength) * wavelength;
 	var x1 = (x0 + wavelength) % size;
+	var y0 = Math.floor(y / wavelength) * wavelength;
+	var y1 = (y0 + wavelength) % size;
+
+	// Compute blending factors.
 	var blend_x = (x - x0) * frequency;
+	var blend_y = (y - y0) * frequency;
 
 	// Bilinear interpolation.
 
@@ -70,17 +70,15 @@ function valueNoise(k, source, x, y) {
 
    octaves.reverse();
 
-	// Initialize the result grid with values from the last octave.
-
-   var height = octaves[0];
+   var height = 0;
 
 	// Add each octaves with respect to the persistence value.
 
-   var persistence = 0.4;
+   var persistence = 0.6;
 	var amplitude = 1;
    var sumAmplitude = amplitude;
 
-   for(var i = 1; i < octaves.length; ++i) {
+   for(var i = 0; i < octaves.length; ++i) {
 
 		amplitude = Math.pow(persistence, i);
 
@@ -89,7 +87,7 @@ function valueNoise(k, source, x, y) {
 		sumAmplitude += amplitude;
    }
 
-	// Normalize the height values.
+	// Normalize the height.
 	height /= sumAmplitude;
 
    return height;
@@ -97,14 +95,16 @@ function valueNoise(k, source, x, y) {
 
 self.onmessage = function(event) {
 
-	if(randomSource === null)
-		randomSource = randomNoise();
-
 	var task = event.data;
 
-	var source = randomSource;
 	var index = task.index;
 	var k = task.k;
+
+	size = task.size;
+	size2 = size * size;
+
+	if(source === null)
+		source = randomNoise();
 
 	var height;
 
