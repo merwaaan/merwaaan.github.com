@@ -70,15 +70,15 @@ function valueNoise(k, source, x, y) {
 
    octaves.reverse();
 
-   var height = 0;
+   var height = octaves[0];
 
 	// Add each octaves with respect to the persistence value.
 
-   var persistence = 0.6;
+   var persistence = 0.56;
 	var amplitude = 1;
    var sumAmplitude = amplitude;
 
-   for(var i = 0; i < octaves.length; ++i) {
+   for(var i = 1; i < octaves.length; ++i) {
 
 		amplitude = Math.pow(persistence, i);
 

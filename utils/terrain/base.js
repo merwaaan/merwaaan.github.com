@@ -33,15 +33,12 @@ function insertDemo($container, task) {
 
 		worker.onmessage = function(event) {
 
-			var height = event.data.height;
-
-			data[id].toDraw.push(height);
+			data[id].toDraw.push(event.data.height);
 
 			if(data[id].toDraw.length > 5) {
 
-				// Update the canvas and the 3D scene.
+				// Update the canvas.
 				updateHeightMap($container);
-				//updateTerrain($container);
 
 				// Move pixels to draw to the drawn list.
 				for(var i in data[id].toDraw)
@@ -51,10 +48,13 @@ function insertDemo($container, task) {
 
 			// Process the next pixels.
 			++task.index;
-			if(task.index < size2)
+			if(task.index < size2 - 1)
 				worker.postMessage(task);
-			else
+			else {
 				worker.terminate();
+				updateTerrain($container);
+				data[id].animable = true;
+			}
 		};
 
 		worker.postMessage(task);
@@ -132,8 +132,6 @@ function buildTerrain($container) {
    data[id].scene = scene;
    data[id].camera = camera;
 	data[id].material = material;
-
-	data[id].slices = [];
 }
 
 function updateTerrain($container) {
@@ -141,38 +139,33 @@ function updateTerrain($container) {
    var id = $container.attr('id');
 
 	var map = data[id].map;
-	var toDraw = data[id].toDraw;
 
 	var scene = data[id].scene;
 	var camera = data[id].camera;
 	var material = data[id].material;
 
-	var slices = data[id].slices;
-
-	var sliceGeometry = new THREE.Geometry();
+	var terrainGeometry = new THREE.Geometry();
 	var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
 
-	for(var i = 0; i < toDraw.length; ++i) {
+	for(var i = 0; i < map.length; ++i) {
 
-		var height = toDraw[i];
+		var height = map[i];
 
-		var index = map.length + i;
-		var x = index % size;
-		var y = Math.floor(index / size);
+		var x = i % size;
+		var y = Math.floor(i / size);
 
 		var cubeMesh = new THREE.Mesh(cubeGeometry, material);
-		cubeMesh.scale.y = Math.floor(height * 30);
+		cubeMesh.scale.y = Math.floor(height * 60);
 		cubeMesh.position.x = x - size / 2;
 		cubeMesh.position.y = cubeMesh.scale.y / 2;
 		cubeMesh.position.z = y - size / 2;
 
-		THREE.GeometryUtils.merge(sliceGeometry, cubeMesh);
+		THREE.GeometryUtils.merge(terrainGeometry, cubeMesh);
 	}
 
-	var sliceMesh = new THREE.Mesh(sliceGeometry, material);
-	sliceMesh.rotation.y = Math.PI / 4;
-
-	scene.add(sliceMesh);
+	var terrainMesh = new THREE.Mesh(terrainGeometry, material);
+	terrainMesh.rotation.y = Math.PI / 4;
+	scene.add(terrainMesh);
 
 	data[id].renderer.render(scene, camera);
 }
@@ -199,6 +192,9 @@ function animate() {
 
    for(var i in data) {
 
+		if(!data[i].animable)
+			continue;
+
 		data[i].camera.position.x = sint;
 		data[i].camera.position.z = cost;
 		data[i].camera.lookAt(data[i].scene.position);
@@ -218,7 +214,7 @@ $(function() {
 		if(!canvas[0].getContext('webgl'))
 			return false;
 
-		canvas.remove();
+		//canvas.remove();
 
 		return true;
 	})();
@@ -226,4 +222,7 @@ $(function() {
    insertDemo($('#try1'), {type: 'random'});
    insertDemo($('#try2'), {type: 'octave', k: 4});
    insertDemo($('#try3'), {type: 'value', k: 7});
+
+	if(webGLCapable)
+		animate();
 });
