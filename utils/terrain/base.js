@@ -1,88 +1,85 @@
 var webGLCapable = false;
 
-function checkWebGL() {
-
-	if(!window.WebGLRenderingContext)
-		return false;
-
-	var canvas = $('<canvas></canvas>').appendTo('body');
-	if(!canvas[0].getContext('webgl'))
-		return false;
-
-	return true;
-}
-
-var size = 150;
+var size = 100;
 var size2 = size * size;
 
 var time = 0;
 
 var data = {};
 
-function insertDemo(container, task) {
+function insertDemo($container, task) {
 
-   container.addClass('notClicked');
-   container.append('<p>Click and be patient...</p>');
+   $container.addClass('notClicked');
+   $container.append('<p>Click...</p>');
 
-   container.click(function() {
+   var id = $container.attr('id');
+   data[id] = {};
+	data[id].map = [];
+
+	buildHeightMap($container);
+	buildTerrain($container);
+
+   $container.click(function() {
 
 		var worker = new Worker('/utils/terrain/worker.js');
 
+		task.index = 0;
+
 		worker.onmessage = function(event) {
 
-			var heightMap = event.data;
+			data[id].map.push(event.data.height);
 
-			drawHeightMap(container, heightMap);
-			drawTerrain(container, heightMap);
+			updateHeightMap($container);
+			updateTerrain($container);
 
-			worker.terminate();
+			// Process the next pixel.
+			++task.index;
+			if(task.index < size2)
+				worker.postMessage(task);
 		};
 
 		worker.postMessage(task);
 
-		container.unbind('click');
+		$container.unbind('click');
    });
 }
 
-function drawHeightMap(container, noise) {
+function buildHeightMap($container) {
 
-   var canvas = $('<canvas width="' + size + '" height="' + size + '"></canvas>').appendTo(container);
-   var ctxt = canvas[0].getContext('2d');
+	var id = $container.attr('id');
 
-   for(var i = 0; i < size; ++i)
-		for(var j = 0; j < size; ++j) {
+   var $canvas = $('<canvas width="' + size + '" height="' + size + '"></canvas>').appendTo($container);
+   var ctxt = $canvas[0].getContext('2d');
 
-			var c = Math.floor(noise[i * size + j] * 255);
-			ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
-
-			ctxt.fillRect(j, i, 1, 1);
-		}
+	data[id].ctxt = ctxt;
 }
 
-function drawHeightMapSampling(container, noise, k) {
+function updateHeightMap($container) {
 
-	var wavelength = Math.pow(2, k);
+	var id = $container.attr('id');
 
-   var canvas = $('<canvas width="' + size + '" height="' + size + '"></canvas>').appendTo(container);
-   var ctxt = canvas[0].getContext('2d');
+	var map = data[id].map;
+	var height = map[map.length - 1];
+	var ctxt = data[id].ctxt;
 
-   for(var i = 0; i < size; ++i)
-		for(var j = 0; j < size; ++j) {
+	// Compute the pixel color.
+	var c = Math.floor(height * 255);
+	ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
 
-			if(i % wavelength == 0 && j % wavelength == 0) {
-
-				ctxt.fillStyle = 'rgb(255,0,0)';
-				ctxt.fillRect(j, i, 1, 1);
-			}
-		}
+	// Draw.
+	var x = map.length % size;
+	var y = Math.floor(map.length / size);
+	ctxt.fillRect(x, y, 1, 1);
 }
 
-function drawTerrain(container, noise) {
+function buildTerrain($container) {
+
+   var id = $container.attr('id');
 
    var renderer = webGLCapable ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
    renderer.setSize(500, 400);
 
-   container.append(renderer.domElement);
+   $container.append(renderer.domElement);
 
    var scene =  new THREE.Scene();
 
@@ -103,40 +100,63 @@ function drawTerrain(container, noise) {
 		color: 0x00AA00
    });
 
-	var terrainGeo = new THREE.Geometry();
-
-	var cubeGeo = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
-
-	for(var i = 0; i < size2; ++i) {
-
-		var cube = new THREE.Mesh(cubeGeo);
-		cube.scale.y = Math.floor(noise[i] * 30);
-		cube.position.x = i % size - size / 2;
-		cube.position.y = cube.scale.y / 2;
-		cube.position.z = Math.floor(i / size) - size / 2;
-
-		THREE.GeometryUtils.merge(terrainGeo, cube);
-	}
-
-	var terrainMesh = new THREE.Mesh(terrainGeo, material);
-	terrainMesh.rotation.y = Math.PI / 4;
-	scene.add(terrainMesh);
+	var terrainGeometry = new THREE.Geometry();
 
    // Store specific data.
-   var id = container.attr('id');
-   data[id] = {};
    data[id].renderer = renderer;
    data[id].scene = scene;
    data[id].camera = camera;
+	data[id].material = material;
+	data[id].geometry = terrainGeometry;
 
-   container.removeClass('notClicked');
-   $('p', container).remove();
+   $container.removeClass('notClicked');
+   $('p', $container).remove();
 
 	if(webGLCapable)
 		animate();
 	else
 		renderer.render(scene, camera);
 }
+
+function updateTerrain($container) {
+
+   var id = $container.attr('id');
+
+	var map = data[id].map;
+	var height = map[map.length - 1];
+	var index = map.length - 1;
+
+	var scene = data[id].scene;
+	var camera = data[id].camera;
+	var material = data[id].material;
+	var terrainGeometry = data[id].geometry;
+
+	scene.remove(data[id].mesh);
+
+	var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
+
+	var cubeMesh = new THREE.Mesh(cubeGeometry, material);
+	cubeMesh.scale.y = Math.floor(height * 30);
+	cubeMesh.position.x = index % size - size / 2;
+	cubeMesh.position.y = cubeMesh.scale.y / 2;
+	cubeMesh.position.z = Math.floor(index / size) - size / 2;
+
+	THREE.GeometryUtils.merge(terrainGeometry, cubeMesh);
+
+	var terrainMesh = new THREE.Mesh(terrainGeometry, material);
+	terrainMesh.rotation.y = Math.PI / 4;
+
+	scene.add(terrainMesh);
+
+	--x;
+	if(x == 0) {
+		data[id].renderer.render(scene, camera);
+		x = 1000;
+	}
+
+	data[id].mesh = terrainMesh;
+}
+var x = 1000; //TODO
 
 window.requestAnimationFrame = (function(){
    return window.requestAnimationFrame ||
@@ -167,3 +187,24 @@ function animate() {
 		data[i].renderer.render(data[i].scene, data[i].camera);
    }
 }
+
+$(function() {
+
+	webGLCapable = (function checkWebGL() {
+
+		if(!window.WebGLRenderingContext)
+			return false;
+
+		var canvas = $('<canvas></canvas>').appendTo('body');
+		if(!canvas[0].getContext('webgl'))
+			return false;
+
+		canvas.remove();
+
+		return true;
+	})();
+
+   insertDemo($('#try1'), {type: 'random'});
+   insertDemo($('#try2'), {type: 'octave', k: 4});
+   insertDemo($('#try3'), {type: 'value', k: 7});
+});

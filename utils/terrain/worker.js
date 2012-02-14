@@ -1,5 +1,7 @@
-var size = 150;
+var size = 100;
 var size2 = size * size;
+
+var randomSource = null;
 
 function linear(a, b, x) {
 
@@ -13,7 +15,7 @@ function cosine(a, b, x) {
    return a * (1 - y) + b * y;
 }
 
-var interpolate = cosine;
+var interpolate = linear;
 
 function randomNoise() {
 
@@ -25,61 +27,54 @@ function randomNoise() {
 	return array;
 }
 
-function octave(k, source) {
+function octave(k, source, x, y) {
 
    var wavelength = Math.pow(2, k);
    var frequency = 1 / wavelength;
 
-   var result = [];
+	// Compute corner points.
 
-   for(var i = 0; i < size; ++i) {
+	var y0 = Math.floor(y / wavelength) * wavelength;
+	var y1 = (y0 + wavelength) % size;
+	var blend_y = (y - y0) * frequency;
 
-		var i0 = Math.floor(i / wavelength) * wavelength;
-		var i1 = (i0 + wavelength) % size;
-		var blend_i = (i - i0) * frequency;
+	var x0 = Math.floor(x / wavelength) * wavelength;
+	var x1 = (x0 + wavelength) % size;
+	var blend_x = (x - x0) * frequency;
 
-		for(var j = 0; j < size; ++j) {
+	// Bilinear interpolation.
 
-			var j0 = Math.floor(j / wavelength) * wavelength;
-			var j1 = (j0 + wavelength) % size;
-			var blend_j = (j - j0) * frequency;
+	var top = interpolate(
+		source[y0 * size + x0],
+		source[y0 * size + x1],
+		blend_x);
 
-			var top = interpolate(
-				source[i0 * size + j0],
-				source[i0 * size + j1],
-				blend_j);
+	var bottom = interpolate(
+		source[y1 * size + x0],
+		source[y1 * size + x1],
+		blend_x);
 
-			var bottom = interpolate(
-				source[i1 * size + j0],
-				source[i1 * size + j1],
-				blend_j);
+	var height = interpolate(top, bottom, blend_y);
 
-			result[i * size + j] = interpolate(top, bottom, blend_i);
-		}
-   }
-
-   return result;
+   return height;
 }
 
-function valueNoise(noise) {
+function valueNoise(k, source, x, y) {
 
 	// Generate and store octaves.
 
-   var octaves = [noise];
+   var octaves = [source[y * size + x]];
 
-   for(var i = 1; i < 6; ++i)
-		octaves[i] = octave(i, noise);
+   for(var i = 1; i < k; ++i)
+		octaves[i] = octave(i, source, x, y);
 
    octaves.reverse();
 
 	// Initialize the result grid with values from the last octave.
 
-   var result = [];
+   var height = octaves[0];
 
-   for(var i in octaves[0])
-		result[i] = octaves[0][i];
-
-	// Add each other octaves with respect to the persistence.
+	// Add each octaves with respect to the persistence value.
 
    var persistence = 0.4;
 	var amplitude = 1;
@@ -87,33 +82,38 @@ function valueNoise(noise) {
 
    for(var i = 1; i < octaves.length; ++i) {
 
-		// Decrease the amplitude.
 		amplitude = Math.pow(persistence, i);
 
-		for(var j in result)
-			result[j] += octaves[i][j] * amplitude;
+		height += octaves[i] * amplitude;
 
 		sumAmplitude += amplitude;
    }
 
 	// Normalize the height values.
+	height /= sumAmplitude;
 
-   for(var i in result)
-		result[i] /= sumAmplitude;
-
-   return result;
+   return height;
 }
 
 self.onmessage = function(event) {
 
+	if(randomSource === null)
+		randomSource = randomNoise();
+
 	var task = event.data;
 
-	var noise = randomNoise();
+	var source = randomSource;
+	var index = task.index;
+	var k = task.k;
+
+	var height;
 
 	if(task.type === 'random')
-		self.postMessage(noise);
+		height = source[index]
 	else if(task.type === 'octave')
-		self.postMessage(octave(task.k, noise));
+		height = octave(k, source, index % size, Math.floor(index / size));
 	else if(task.type === 'value')
-		self.postMessage(valueNoise(noise));
+		height = valueNoise(k, source, index % size, Math.floor(index / size));
+
+	self.postMessage({height: height});
 };
