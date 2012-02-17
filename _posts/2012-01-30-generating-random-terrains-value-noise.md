@@ -41,13 +41,14 @@ proportionally high.
 Height maps have some downsides though. As the idea is to extrapolate
 a third dimension model from two-dimensionnal data, you can only
 change vertices y-coordinates (pull them upward or push them
-downward). Thus certain features, such as overhangs or caverns are not
-representable.
+downward). Thus, certain features, such as overhangs or caverns are
+not representable.
 
 With all that in mind, our only work here is to generate a height map
 representing a terrain. Let's start by randomly generating one of
 those. For each grid value (or pixel), we assign a random float
-between 0 and 1. You can see below both the height map and the
+between 0 and 1. If you click on the dark box below (and if you remain
+patient), you will see both the generated height map and the
 corresponding terrain.
 
 <div class="try" id="try1">
@@ -72,22 +73,22 @@ be realistic enough because it will only be composed of flat and
 artificial slopes. When looking at a mountain from afar, you can
 merely observe the general outline. If you walk closer, some hills and
 valleys start to appear. When you're on the mountain itself, you can
-see very tiny details, small holes, rocks. To give a natural feel, we
-need to capture variations at both the macroscopic and microscopic
-levels.
+see very tiny details, small holes, rocks. To give our terrain a
+natural feel, we need to capture variations both at the macroscopic
+and microscopic levels.
 
 This is when value noise (not to be confused with [Perlin
 noise](http://www.noisemachine.com/talk1/)) comes into play. The
 steps described below let us generate a more natural-looking terrain:
 
-+ Sample *n* regular subsets of pixels (where subset *n* contains
+1. Sample *n* regular subsets of pixels (where subset *n* contains
 every *2<sup>n</sup>*-th pixel)
 
-+ Fill the gaps between the selected pixels
-with some kind of interpolation
+2. Fill the gaps between the selected pixels with some kind of
+interpolation
 
-+ Sum up each layer with an
-appropriate weight to obtain the final height map
+3. Sum up each layer with an appropriate weight to obtain the final
+height map
 
 ### Sampling
 
@@ -98,12 +99,14 @@ called an octave and is associated with a number starting from
 height map. This forms a grid of squares, each sampled points being
 corners of those squares.
 
-IMAGE
+IMAGE GRID 1 -> OCTAVE
+IMAGE GRID 4 -> OCTAVE
+IMAGE GRID 6 -> OCTAVE
 
 ### Filling the gaps
 
 For the moment, an octave is mainly empty, apart from the sampled
-points and we need to determine the value of absent pixels. Let's say
+points. We now need to determine the value of absent pixels. Let's say
 we want to compute the value of pixel *P* of a given octave. To do
 that, we simply find in which grid square *P* is and interpolate the
 values of its corners with respect to the distance from *P* to each
@@ -119,20 +122,19 @@ function linear(a, b, x) {
 
 Then there is cosine interpolation.
 
-function square(a, b, x) {
+function cosine(a, b, x) {
 
 }
 
-Oh, of course the given functions only work in 1D. To obtain the value
-of P from the four corner of the square (C1, C2, C3, C4, in clockwise
-order starting from the top left), we separately interpolate (C1 and
-C2) and (C3 and C4) which gives the values of points respectively at
-the top and bottom lines of the square. Then we interpolate these two
-intermediate points.
+You will note that the given functions only work in 1D. To obtain the
+value of *P* from the four corner of the square (*C1*, *C2*, *C3*,
+*C4*, in clockwise order starting from the top left), we separately
+interpolate (*C1* and *C2*) and (*C3* and *C*4) which gives us the
+values of points respectively at the top and bottom lines of the
+square. Then we interpolate these two intermediate points. This
+process is known as bilinear interpolation.
 
-IMAGE OCTAVES
-
-DEMO OCTAVE
+IMAGE INTERPOLATION
 
 ### Summing up
 

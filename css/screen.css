@@ -108,12 +108,12 @@ article > div > p {
 	text-align: justify;
 }
 
-article ul li {
-	list-style-type: square;
+article ol li {
+	list-style-type: decimal !important;
 }
 
 article a {
-	border-bottom: 3px solid #556270;
+	border-bottom: 3px solid pink;
 }
 
 article a:hover {

@@ -5,7 +5,7 @@ var source = null;
 
 function linear(a, b, x) {
 
-   return a * (1 - x) + x * b;
+   return a + (b - a) * x;//a * (1 - x) + x * b;
 }
 
 function cosine(a, b, x) {
