@@ -1,8 +1,7 @@
 ---
 layout: post
-title: "Generating Random Terrain: Value Noise"
+title: "[DRAFT] Generating Random Terrain: Value Noise"
 published: true
-comments: true
 js: [three, terrain/base]
 css: [terrain]
 ---
@@ -32,11 +31,11 @@ is a grid of real values between 0 and 1, each representing the
 elevation of a corresponding vertex of our terrain (0 means lowest, 1
 means highest, any value in between is proportionally high). They are
 often persistently stored as images which is convenient as you just
-need to open them in any image viewer to have an idea of the
-appearance of a terrain. Of course, the previous principle is still
-valid with colors: black (RGB\[0,0,0]) means lowest, white
-(RGB\[255,255,255]) means highest and any shade of grey in between is
-proportionally high.
+need to open them with any image viewer to have an idea of the
+appearance of a terrain. In this case, colors are used instead of real
+values to represent each vertex height: black (RGB\[0,0,0]) means
+lowest, white (RGB\[255,255,255]) means highest and any shade of grey
+in between is proportionally high.
 
 Height maps have some downsides though. As the idea is to extrapolate
 a third dimension model from two-dimensionnal data, you can only
@@ -47,9 +46,10 @@ not representable.
 With all that in mind, our only work here is to generate a height map
 representing a terrain. Let's start by randomly generating one of
 those. For each grid value (or pixel), we assign a random float
-between 0 and 1. If you click on the dark box below (and if you remain
-patient), you will see both the generated height map and the
-corresponding terrain.
+between 0 and 1. If you click on the dark box below, you will see both
+the generated height map and the corresponding terrain (please be
+patient, the 3D terrain generation may freeze your browser for several
+seconds, sorry about that!).
 
 <div class="try" id="try1">
 </div>
