@@ -113,10 +113,8 @@ article > div {
 article h3 {
 	margin-top: 2em;
 	margin-bottom: 1em;
-	padding-left : 25px;
 	font-weight: bold;
 	color: #556270;
-	background: url("/favicon.ico") no-repeat left center;
 }
 
 article > div > p {
