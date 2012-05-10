@@ -3,27 +3,29 @@ layout: default
 title: Blog
 ---
 
-<h2>Articles</h2>
+<article>
 
-{{ site.posts.length }}
-<table id="articles">
-  {% for post in site.posts %}
-  <tr>
-    <td class="soft">{{ post.date | date_to_string }}</td>
-    <td><a href="{{ post.url }}">{{ post.title }}</a></td>
-  </tr>
-  {% endfor %}
-</table>
+  {% assign page = site.posts.first %}
 
-<h2>Projects</h2>
-<ul id="projects">
-  <li>
-    <a href="http://github.com/fmdkdd/sparkets">Sparkets</a>
-    <span class="soft">— A multiplayer space shooter powered by
-    HTML5, Node and Socket IO</span>
-  </li>
-  <li>
-    <a href="http://github.com/merwaaan/tperigidbody">Physics</a>
-    <span class="soft">— A physic engine simulating rigid body behaviours in a three-dimensional environment</span>
-  </li>
-</ul>
+  <header>
+    <h2>{{ page.title }}</h2>
+    <span class="soft">{{ page.date | date_to_string }}</span>
+  </header>
+
+  <div>
+    {{ page.content }}
+  </div>
+
+  <footer>
+
+    {% if page.next.title != null %}
+    <a href="{{ page.next.url }}" class="next">↩ {{ page.next.title }}</a>
+    {% endif %}
+
+    {% if page.previous.title != null %}
+    <a href="{{ page.previous.url }}" class="previous">{{ page.previous.title }} ↪</a>
+    {% endif %}
+
+  </footer>
+
+</article>
