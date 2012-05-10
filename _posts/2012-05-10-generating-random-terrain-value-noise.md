@@ -33,9 +33,8 @@ means highest, any value in between is proportionally high). They are
 often persistently stored as images which is convenient as you just
 need to open them with any image viewer to have an idea of the
 appearance of a terrain. In this case, colors are used instead of real
-values to represent each vertex height: black (RGB\[0,0,0]) means
-lowest, white (RGB\[255,255,255]) means highest and any shade of grey
-in between is proportionally high.
+values to represent each vertex height: black means lowest, white
+means highest and any shade of grey in between is proportionally high.
 
 Height maps have some downsides though. As the idea is to extrapolate
 a third dimension model from two-dimensionnal data, you can only
@@ -78,8 +77,9 @@ natural feel, we need to capture variations both at the macroscopic
 and microscopic levels.
 
 This is when value noise (not to be confused with [Perlin
-noise](http://www.noisemachine.com/talk1/)) comes into play. The
-steps described below let us generate a more natural-looking terrain:
+noise](http://www.noisemachine.com/talk1/)) comes into play. The steps
+described below let us create a more natural-looking terrain from
+the random one we just generated:
 
 1. Sample *n* regular subsets of pixels (where subset *n* contains
 every *2<sup>n</sup>*-th pixel)
@@ -87,30 +87,52 @@ every *2<sup>n</sup>*-th pixel)
 2. Fill the gaps between the selected pixels with some kind of
 interpolation
 
-3. Sum up each layer with an appropriate weight to obtain the final
-height map
+3. Sum up each of these layers with an appropriate weight to obtain
+the final height map
 
 ### Sampling
 
 Sampling the original random noise at different levels provides us the
 several layers of precision needed.  Each of these sampled maps is
-called an octave and is associated with a number starting from
-*0*. Octave *i* contains every *2<sup>i</sup>* pixels of the original
-height map. This forms a grid of squares, each sampled points being
-corners of those squares.
+called an octave and is associated with a number starting from *0*
+where octave *i* is the layer containing every *2<sup>i</sup>* pixels
+of the original height map. You will note that octave *0* actually is
+the random terrain generated earlier because this sampling contains
+every pixel. This is the reason why your height map dimensions must be
+powers of two like 256\*256 or 1024\*512.
 
-IMAGE GRID 1 -> OCTAVE
-IMAGE GRID 4 -> OCTAVE
-IMAGE GRID 6 -> OCTAVE
+Let's take the following 64\*64 randomly-generated height map as an
+example.
+
+![](/images/octave_base.png)
+
+As stated before, the octave *0* is the original image, so let's
+compute octave *1*. Only the *2n*-th pixels are kept.
+
+![](/images/octave_1.png)
+![](/images/octave_1b.png)
+
+For octave 2, only the *4n*-th pixels are kept.
+
+![](/images/octave_2.png)
+![](/images/octave_2b.png)
+
+For octave 3, only the *8n*-th pixels are kept, and so on...
+
+![](/images/octave_3.png)
+![](/images/octave_3b.png)
 
 ### Filling the gaps
 
-For the moment, an octave is mainly empty, apart from the sampled
-points. We now need to determine the value of absent pixels. Let's say
-we want to compute the value of pixel *P* of a given octave. To do
-that, we simply find in which grid square *P* is and interpolate the
-values of its corners with respect to the distance from *P* to each
-corner.
+For the moment, octave are mainly empty, apart from the sampled
+points. We now need to determine the values of absent pixels. Let's
+say we want to compute the value of pixel *P* of a given octave. To do
+that, we simply find in which square *P* is and interpolate the values
+of its corners with respect to the distance from *P* to each
+corner. in the following illustration, *P* is the blue pixel whereas
+the corners of its squares are red.
+
+![](/images/octave_square.png)
 
 We can use several kind of interpolation. The simplest is linear
 interpolation; efficient in terms of speed but the result can be a bit
@@ -120,11 +142,8 @@ function linear(a, b, x) {
   return a + (b - a) * x;
 }
 
-Then there is cosine interpolation.
-
-function cosine(a, b, x) {
-
-}
+*a* is the starting value, *b* the end value and *x* a real number
+ within \[0,1\].
 
 You will note that the given functions only work in 1D. To obtain the
 value of *P* from the four corner of the square (*C1*, *C2*, *C3*,
@@ -134,23 +153,21 @@ values of points respectively at the top and bottom lines of the
 square. Then we interpolate these two intermediate points. This
 process is known as bilinear interpolation.
 
-IMAGE INTERPOLATION
-
 ### Summing up
 
 Let's summarize. From a unique random noise, we created octaves by
-regularly sampling pixels and we filled the gap with interpolation.
+regularly sampling pixels and we filled the voids using linear
+interpolation.
 
-Now that we dispose of n octaves, we just need to assemble them into a
-unique image. In order to make good use of our different layers of
+Now that we dispose of *n* octaves, we just need to assemble them into
+a unique image. In order to make good use of our different layers of
 precision, the influence of each of them in the final result is
 weighted. It's rather straightforward to assume that the octave with
 the largest frequency is going to help define the global relief
 whereas the one with the smallest frequency will only influe on small
 local details.
 
-We introduce the notion of persistence, a increasing value which will
-define the global influence of each layer.
+persistence
 
 <div class="try" id="try2">
 </div>

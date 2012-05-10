@@ -26,3 +26,11 @@
 .try canvas:nth-child(1) {
     margin-right: 50px;
 }
+
+img {
+	border: 1px solid lightgray;
+}
+
+img + img {
+	margin-left: 4em;
+}
