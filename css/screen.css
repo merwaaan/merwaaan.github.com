@@ -36,7 +36,7 @@ ul {
 	font-size: 0.85em;
 }
 
-header {
+body > header {
 	height: 3em;
 	background: #556270;
 	padding-left: 3em;
@@ -44,7 +44,7 @@ header {
 	border-bottom: 3px solid pink;
 }
 
-header h1 a {
+body > header h1 a {
 	float: left;
 	font-family: "Lobster Two";
 	font-size: 1em;
@@ -52,23 +52,23 @@ header h1 a {
 	color: white;
 }
 
-header h1 a:hover {
+body > header h1 a:hover {
 	text-decoration: none;
 }
 
-header nav {
+body > header nav {
 	float: right;
 	margin-top: 0.6em;
 	font-size: 1.1em;
 	color: pink;
 }
 
-header nav a {
+body > header nav a {
 	font-family: "Lobster Two";
 	color: white;
 }
 
-header nav a:nth-child(3) {
+body > header nav a:nth-child(3) {
 	color: pink;
 }
 
