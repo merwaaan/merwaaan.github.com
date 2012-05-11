@@ -175,7 +175,7 @@ function animate() {
 
    window.requestAnimationFrame(animate);
 
-   time += 0.001;
+   time += 0.005;
 
    var sint = Math.sin(time) * 200;
    var cost = Math.cos(time) * 200;
@@ -203,15 +203,23 @@ $(function() {
 			return false;
 
 		var canvas = $('<canvas></canvas>').appendTo('body');
-		if(!canvas[0].getContext('webgl'))
-			return false;
+		var contexts = [
+			'webgl',
+			'experimental-webgl',
+			'moz-webgl',
+			'webkit-3d'
+		];
+
+		for(var i in contexts)
+			if(canvas[0].getContext(contexts[i]))
+				return true;
 
 		canvas.remove();
 
-		return true;
+		return false;
 	})();
 
-	console.log('webGL =', webGLCapable);
+	console.log('webGL capable =', webGLCapable);
 
 	// Add the demos to the page.
 
