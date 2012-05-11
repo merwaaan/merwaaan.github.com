@@ -1,9 +1,11 @@
 var webGLCapable = false;
 
-var size = 150;
+var size = 128;
 var size2 = size * size;
 
 var time = 0;
+
+var cache = [];
 
 var data = {};
 
@@ -14,10 +16,10 @@ function insertDemo($container, task) {
 
    var id = $container.attr('id');
    data[id] = {};
-	data[id].map = [];
-	data[id].toDraw = [];
 
    $container.click(function() {
+
+		$container.unbind('click');
 
 		// Prepare a canvas and set up the 3D scene.
 		buildHeightMap($container);
@@ -30,36 +32,32 @@ function insertDemo($container, task) {
 
 		task.size = size;
 		task.index = 0;
+		task.chunk = 512;
+		task.cache = cache;
 
 		worker.onmessage = function(event) {
 
-			data[id].toDraw.push(event.data.height);
+			var answer = event.data;
 
-			if(data[id].toDraw.length > 5) {
+			// Update the displays.
+			updateHeightMap($container, answer.task.index, answer.heights);
+			updateTerrain($container, answer.task.index, answer.heights);
 
-				// Update the canvas.
-				updateHeightMap($container);
+			// Update the cache.
+			cache = event.data.cache;
 
-				// Move pixels to draw to the drawn list.
-				for(var i in data[id].toDraw)
-					data[id].map.push(data[id].toDraw[i]);
-				data[id].toDraw = [];
-			}
+			// Process the next pixels or stop.
+			answer.task.index = answer.next;
 
-			// Process the next pixels.
-			++task.index;
-			if(task.index < size2 - 1)
-				worker.postMessage(task);
+			if(answer.task.index < size2 - 1)
+				worker.postMessage(answer.task);
 			else {
 				worker.terminate();
-				updateTerrain($container);
 				data[id].animable = true;
 			}
 		};
 
 		worker.postMessage(task);
-
-		$container.unbind('click');
    });
 }
 
@@ -73,25 +71,22 @@ function buildHeightMap($container) {
 	data[id].ctxt = ctxt;
 }
 
-function updateHeightMap($container) {
+function updateHeightMap($container, startIndex, heights) {
 
 	var id = $container.attr('id');
 
 	var ctxt = data[id].ctxt;
 
-	var map = data[id].map;
-	var toDraw = data[id].toDraw;
+	for(var i = 0, l = heights.length; i<l; ++i) {
 
-	for(var i = 0; i < toDraw.length; ++i) {
-
-		var height = toDraw[i];
+		var height = heights[i];
 
 		// Compute the pixel color.
 		var c = Math.floor(height * 255);
 		ctxt.fillStyle = 'rgb('+c+','+c+','+c+')';
 
 		// Compute the pixel position.
-		var index = map.length + i;
+		var index = startIndex + i;
 		var x = index % size;
 		var y = Math.floor(index / size);
 
@@ -134,11 +129,9 @@ function buildTerrain($container) {
 	data[id].material = material;
 }
 
-function updateTerrain($container) {
+function updateTerrain($container, startIndex, heights) {
 
    var id = $container.attr('id');
-
-	var map = data[id].map;
 
 	var scene = data[id].scene;
 	var camera = data[id].camera;
@@ -147,12 +140,13 @@ function updateTerrain($container) {
 	var terrainGeometry = new THREE.Geometry();
 	var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
 
-	for(var i = 0; i < map.length; ++i) {
+	for(var i = 0, l = heights.length; i < l; ++i) {
 
-		var height = map[i];
+		var height = heights[i];
 
-		var x = i % size;
-		var y = Math.floor(i / size);
+		var index = startIndex + i;
+		var x = index % size;
+		var y = Math.floor(index / size);
 
 		var cubeMesh = new THREE.Mesh(cubeGeometry, material);
 		cubeMesh.scale.y = Math.floor(height * 60);
@@ -160,12 +154,8 @@ function updateTerrain($container) {
 		cubeMesh.position.y = cubeMesh.scale.y / 2;
 		cubeMesh.position.z = y - size / 2;
 
-		THREE.GeometryUtils.merge(terrainGeometry, cubeMesh);
+		scene.add(cubeMesh);
 	}
-
-	var terrainMesh = new THREE.Mesh(terrainGeometry, material);
-	terrainMesh.rotation.y = Math.PI / 4;
-	scene.add(terrainMesh);
 
 	data[id].renderer.render(scene, camera);
 }
@@ -205,6 +195,8 @@ function animate() {
 
 $(function() {
 
+	// Check for WebGL compatibility.
+
 	webGLCapable = (function() {
 
 		if(!window.WebGLRenderingContext)
@@ -214,15 +206,20 @@ $(function() {
 		if(!canvas[0].getContext('webgl'))
 			return false;
 
-		//canvas.remove();
+		canvas.remove();
 
 		return true;
 	})();
 
-   insertDemo($('#try1'), {type: 'random'});
-   insertDemo($('#try2'), {type: 'octave', k: 4});
-   insertDemo($('#try3'), {type: 'value', k: 7});
+	console.log('webGL =', webGLCapable);
 
+	// Add the demos to the page.
+
+   insertDemo($('#try1'), {type: 'r'});
+   insertDemo($('#try2'), {type: 'o', k: 4});
+	insertDemo($('#try3'), {type: 'v', k: 7});
+
+	// Spin the terrain if possible.
 	if(webGLCapable)
 		animate();
 });

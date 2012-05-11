@@ -153,6 +153,9 @@ values of points respectively at the top and bottom lines of the
 square. Then we interpolate these two intermediate points. This
 process is known as bilinear interpolation.
 
+<div class="try" id="try2">
+</div>
+
 ### Summing up
 
 Let's summarize. From a unique random noise, we created octaves by
@@ -168,9 +171,6 @@ whereas the one with the smallest frequency will only influe on small
 local details.
 
 persistence
-
-<div class="try" id="try2">
-</div>
 
 <div class="try" id="try3">
 </div>

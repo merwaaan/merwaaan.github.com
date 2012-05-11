@@ -1,7 +1,11 @@
 var size = null;
 var size2 = null;
 
-var source = null;
+var cache = null;
+
+/**
+ * Interpolation functions.
+ */
 
 function linear(a, b, x) {
 
@@ -17,20 +21,46 @@ function cosine(a, b, x) {
 
 var interpolate = cosine;
 
-function randomNoise() {
+/**
+ * Generates the initial noise.
+ */
 
-	var array = [];
+function randomNoise(index) {
 
-	for(var i = 0; i < size2; ++i)
-		array[i] = Math.random();
+ 	// Prepare the cache.
+	if(!cache[0])
+		cache[0] = [];
+	// Use the cache if possible.
+	else if(cache[0][index])
+		return cache[0][index];
 
-	return array;
+	// Or generate a new value.
+	var noise = Math.random();
+
+	// And update the cache.
+	cache[0][index] = noise;
+
+	return noise;
 }
 
-function octave(k, source, x, y) {
+/**
+ * Generates the k-th octave.
+ */
+
+function octave(k, index) {
+
+	// Prepare the cache.
+	if(!cache[k])
+		cache[k] = [];
+	// Use the cache if possible.
+	else if(cache[k][index])
+		return cache[k][index];
 
    var wavelength = Math.pow(2, k);
    var frequency = 1 / wavelength;
+
+	var x = index % size;
+	var y = Math.floor(index / size);
 
 	// Compute corner points.
 	var x0 = Math.floor(x / wavelength) * wavelength;
@@ -45,34 +75,48 @@ function octave(k, source, x, y) {
 	// Bilinear interpolation.
 
 	var top = interpolate(
-		source[y0 * size + x0],
-		source[y0 * size + x1],
+		randomNoise(y0 * size + x0),
+		randomNoise(y0 * size + x1),
 		blend_x);
 
 	var bottom = interpolate(
-		source[y1 * size + x0],
-		source[y1 * size + x1],
+		randomNoise(y1 * size + x0),
+		randomNoise(y1 * size + x1),
 		blend_x);
 
 	var height = interpolate(top, bottom, blend_y);
 
+	// Update the cache.
+	cache[k][index] = height;
+
    return height;
 }
 
-function valueNoise(k, source, x, y) {
+/**
+ * Generates the height map.
+ */
+
+function valueNoise(k, index) {
+
+	// Prepare the cache.
+	if(!cache[k])
+		cache[k] = [];
+	// Use the cache if possible.
+	else if(cache[k][index])
+		return cache[k][index];
 
 	// Generate and store octaves.
 
-   var octaves = [source[y * size + x]];
+   var octaves = [randomNoise(index)];
 
    for(var i = 1; i < k; ++i)
-		octaves[i] = octave(i, source, x, y);
+		octaves[i] = octave(i, index);
 
    octaves.reverse();
 
-   var height = octaves[0];
-
 	// Add each octaves with respect to the persistence value.
+
+	var height = octaves[0];
 
    var persistence = 0.56;
 	var amplitude = 1;
@@ -90,6 +134,9 @@ function valueNoise(k, source, x, y) {
 	// Normalize the height.
 	height /= sumAmplitude;
 
+	// Update the cache.
+	cache[k][index] = height;
+
    return height;
 }
 
@@ -97,23 +144,39 @@ self.onmessage = function(event) {
 
 	var task = event.data;
 
-	var index = task.index;
-	var k = task.k;
-
+	// Retrieve the map dimensions.
 	size = task.size;
 	size2 = size * size;
 
-	if(source === null)
-		source = randomNoise();
+	// Retrieve already computed data.
+	cache = task.cache;
 
-	var height;
+	var index = task.index;
+	var chunk = task.chunk;
 
-	if(task.type === 'random')
-		height = source[index]
-	else if(task.type === 'octave')
-		height = octave(k, source, index % size, Math.floor(index / size));
-	else if(task.type === 'value')
-		height = valueNoise(k, source, index % size, Math.floor(index / size));
+	var heights = [];
 
-	self.postMessage({height: height});
+	for(var i = 0; i < chunk; ++i) {
+
+		var height;
+
+		// Random noise queried.
+		if(task.type === 'r')
+			height = randomNoise(index + i);
+		// Octave k queried.
+		else if(task.type === 'o')
+			height = octave(task.k, index + i);
+		// Final value noise queried.
+		else if(task.type === 'v')
+			height = valueNoise(task.k, index + i);
+
+		heights.push(height);
+	}
+
+	self.postMessage({
+		task: task,
+		heights: heights,
+		cache: cache,
+		next: index + chunk
+	});
 };
