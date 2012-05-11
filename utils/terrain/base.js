@@ -1,13 +1,12 @@
-var webGLCapable = false;
+var webGLCapable;
 
 var size = 128;
 var size2 = size * size;
 
-var time = 0;
-
+var data = {};
 var cache = [];
 
-var data = {};
+var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
 
 function insertDemo($container, task) {
 
@@ -51,10 +50,8 @@ function insertDemo($container, task) {
 
 			if(answer.task.index < size2 - 1)
 				worker.postMessage(answer.task);
-			else {
+			else
 				worker.terminate();
-				data[id].animable = true;
-			}
 		};
 
 		worker.postMessage(task);
@@ -106,8 +103,9 @@ function buildTerrain($container) {
    var scene =  new THREE.Scene();
 
    var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
+	camera.position.x = 130;
    camera.position.y = 130;
-   camera.position.z = 200;
+   camera.position.z = 130;
    camera.lookAt({x: 0, y: 0, z: 0});
    scene.add(camera);
 
@@ -122,11 +120,15 @@ function buildTerrain($container) {
 		color: 0x00AA00
    });
 
+	var terrain = new THREE.Geometry();
+	scene.add(terrain);
+
    // Store specific data.
    data[id].renderer = renderer;
    data[id].scene = scene;
    data[id].camera = camera;
 	data[id].material = material;
+	data[id].terrain = terrain;
 }
 
 function updateTerrain($container, startIndex, heights) {
@@ -136,9 +138,9 @@ function updateTerrain($container, startIndex, heights) {
 	var scene = data[id].scene;
 	var camera = data[id].camera;
 	var material = data[id].material;
+	var terrain = data[id].terrain;
 
-	var terrainGeometry = new THREE.Geometry();
-	var cubeGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 1);
+	var chunk = new THREE.Geometry();
 
 	for(var i = 0, l = heights.length; i < l; ++i) {
 
@@ -148,49 +150,18 @@ function updateTerrain($container, startIndex, heights) {
 		var x = index % size;
 		var y = Math.floor(index / size);
 
-		var cubeMesh = new THREE.Mesh(cubeGeometry, material);
+		var cubeMesh = new THREE.Mesh(cubeGeometry);
 		cubeMesh.scale.y = Math.floor(height * 60);
 		cubeMesh.position.x = x - size / 2;
 		cubeMesh.position.y = cubeMesh.scale.y / 2;
 		cubeMesh.position.z = y - size / 2;
 
-		scene.add(cubeMesh);
+		THREE.GeometryUtils.merge(chunk, cubeMesh);
 	}
 
+	scene.add(new THREE.Mesh(chunk, material));
+
 	data[id].renderer.render(scene, camera);
-}
-
-window.requestAnimationFrame = (function(){
-   return window.requestAnimationFrame ||
-		window.webkitRequestAnimationFrame ||
-		window.mozRequestAnimationFrame ||
-		window.oRequestAnimationFrame ||
-		window.msRequestAnimationFrame ||
-		function(callback, element) {
-			window.setTimeout(callback, 1000 / 20);
-		};
-})();
-
-function animate() {
-
-   window.requestAnimationFrame(animate);
-
-   time += 0.01;
-
-   var sint = Math.sin(time) * 200;
-   var cost = Math.cos(time) * 200;
-
-   for(var i in data) {
-
-		if(!data[i].animable)
-			continue;
-
-		data[i].camera.position.x = sint;
-		data[i].camera.position.z = cost;
-		data[i].camera.lookAt(data[i].scene.position);
-
-		data[i].renderer.render(data[i].scene, data[i].camera);
-   }
 }
 
 $(function() {
@@ -221,8 +192,4 @@ $(function() {
    insertDemo($('#try1'), {type: 'r'});
    insertDemo($('#try2'), {type: 'o', k: 4});
 	insertDemo($('#try3'), {type: 'v', k: 7});
-
-	// Spin the terrain if possible.
-	if(webGLCapable)
-		animate();
 });
