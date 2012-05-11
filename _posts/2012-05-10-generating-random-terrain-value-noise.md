@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "[DRAFT] Generating Random Terrain: Value Noise"
+title: "Generating Random Terrain: Value Noise"
 published: true
 js: [three, terrain/base]
-css: [terrain]
+css: [terrain, pygments]
 ---
 
 ### Motivation
@@ -18,10 +18,10 @@ terraformer.
 
 For the following examples, I am using the [HTML5
 canvas](https://developer.mozilla.org/en/Canvas_tutorial) to draw
-height maps and [Three.js](https://github.com/mrdoob/three.js/) with a
-WebGL renderer to display the resulting terrains. If your browser
-doesn't support WebGL, a canvas is displayed instead. But be advised,
-you're missing on some fancy animating here!
+height maps and [Three.js](https://github.com/mrdoob/three.js/) to
+display the resulting 3D terrains. Everything should work fine if your
+browser doesn't support WebGL as Three provides a canvas renderer for
+fallback; things may get little bit slower tough.
 
 ### The stuff
 
@@ -81,14 +81,14 @@ noise](http://www.noisemachine.com/talk1/)) comes into play. The steps
 described below let us create a more natural-looking terrain from
 the random one we just generated:
 
-1. Sample *n* regular subsets of pixels (where subset *n* contains
-every *2<sup>n</sup>*-th pixel)
+1. Sample *n* regular subsets of pixels where subset *n* contains
+every *2<sup>n</sup>*-th pixel
 
 2. Fill the gaps between the selected pixels with some kind of
 interpolation
 
-3. Sum up each of these layers with an appropriate weight to obtain
-the final height map
+3. Sum up each of these layers with appropriate weights to obtain the
+final height map
 
 ### Sampling
 
@@ -96,12 +96,12 @@ Sampling the original random noise at different levels provides us the
 several layers of precision needed.  Each of these sampled maps is
 called an octave and is associated with a number starting from *0*
 where octave *i* is the layer containing every *2<sup>i</sup>* pixels
-of the original height map. You will note that octave *0* actually is
-the random terrain generated earlier because this sampling contains
-every pixel. This is the reason why your height map dimensions must be
-powers of two like 256\*256 or 1024\*512.
+from the original height map. You will note that octave *0* actually
+is the random terrain generated earlier because this sampling contains
+every pixel. This is also the reason why your height map dimensions
+must be powers of two like 256\*256 or 1024\*512.
 
-Let's take the following 64\*64 randomly-generated height map as an
+Let's take the following 64\*64 randomly generated height map as an
 example.
 
 ![](/images/octave_base.png)
@@ -125,25 +125,46 @@ For octave 3, only the *8n*-th pixels are kept, and so on...
 ### Filling the gaps
 
 For the moment, octave are mainly empty, apart from the sampled
-points. We now need to determine the values of absent pixels. Let's
-say we want to compute the value of pixel *P* of a given octave. To do
-that, we simply find in which square *P* is and interpolate the values
-of its corners with respect to the distance from *P* to each
-corner. in the following illustration, *P* is the blue pixel whereas
-the corners of its squares are red.
+points. These points will serve as guides and we want the slopes
+between each pair of sampled points to be continuous (remember the
+cloth metaphor).
+
+So we need to determine the values of absent pixels. Let's say we want
+to compute the height of pixel *P* of a given octave. To do so, we
+simply find in which square *P* is and interpolate the heights of its
+corners with respect to the distance from *P* to each corner. in the
+following illustration, *P* is the blue pixel and the corners of its
+square are red.
 
 ![](/images/octave_square.png)
 
-We can use several kind of interpolation. The simplest is linear
+Several kinds of interpolation are available. The simplest is linear
 interpolation; efficient in terms of speed but the result can be a bit
-rough.
+rough (check [this
+page](http://local.wasp.uwa.edu.au/~pbourke/miscellaneous/interpolation/)
+for more interpolation methods).
 
+{% highlight javascript %}
 function linear(a, b, x) {
   return a + (b - a) * x;
 }
+{% endhighlight %}
 
-*a* is the starting value, *b* the end value and *x* a real number
- within \[0,1\].
+*a* is the starting value, *b* the ending value and *x* a ratio. If
+ *x* is *0* then the result is *a*. If *x* is 1 then the result is
+ *b*. More generally, the higher *x* is, the closer the result is to
+ *b*.
+
+{% highlight javascript %}
+> linear(0, 10, 0.5)
+5
+
+> linear(1, 2, 0.1)
+1.1
+
+> linear(0, 100, 0.8)
+80
+{% endhighlight %}
 
 You will note that the given functions only work in 1D. To obtain the
 value of *P* from the four corner of the square (*C1*, *C2*, *C3*,
@@ -153,14 +174,23 @@ values of points respectively at the top and bottom lines of the
 square. Then we interpolate these two intermediate points. This
 process is known as bilinear interpolation.
 
+![](/images/octave_bilinear.png)
+
+The following demo shows the third and fifth octaves. The results
+appear rather smooth because I used cosine interpolation instead of
+the linear one which would have produced more pointy hills but the
+principle is identical.
+
 <div class="try" id="try2">
+</div>
+
+<div class="try" id="try3">
 </div>
 
 ### Summing up
 
 Let's summarize. From a unique random noise, we created octaves by
-regularly sampling pixels and we filled the voids using linear
-interpolation.
+regularly sampling pixels and we filled the voids using interpolation.
 
 Now that we dispose of *n* octaves, we just need to assemble them into
 a unique image. In order to make good use of our different layers of
@@ -170,7 +200,7 @@ the largest frequency is going to help define the global relief
 whereas the one with the smallest frequency will only influe on small
 local details.
 
-persistence
+WIP
 
-<div class="try" id="try3">
+<div class="try" id="try4">
 </div>

@@ -190,6 +190,7 @@ $(function() {
 	// Add the demos to the page.
 
    insertDemo($('#try1'), {type: 'r'});
-   insertDemo($('#try2'), {type: 'o', k: 4});
-	insertDemo($('#try3'), {type: 'v', k: 7});
+   insertDemo($('#try2'), {type: 'o', k: 3});
+	insertDemo($('#try3'), {type: 'o', k: 5});
+	insertDemo($('#try4'), {type: 'v', k: 8});
 });

@@ -1,2 +1,4 @@
 auto: true
+
 markdown: maruku
+pygments: true

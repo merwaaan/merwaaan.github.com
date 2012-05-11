@@ -34,3 +34,6 @@ img {
 img + img {
 	margin-left: 4em;
 }
+ol li {
+	list-style: decimal;
+}

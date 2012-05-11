@@ -27,9 +27,7 @@ h3 {
 	font-weight: normal;
 }
 
-ul {
-	list-style-type: none;
-}
+
 
 .soft {
 	color: grey;
@@ -124,8 +122,8 @@ article > div > p {
 	text-align: justify;
 }
 
-article ol li {
-	list-style-type: decimal !important;
+article ol {
+	margin-left: 3em;
 }
 
 article a {
@@ -139,6 +137,12 @@ article a:hover {
 article em {
 	font-family: serif;
 	font-style: italic;
+}
+
+article pre {
+	padding: 1em;
+	margin-bottom: 1em;
+	border: 1px solid lightgrey;
 }
 
 #articles, #projects {
