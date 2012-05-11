@@ -175,7 +175,7 @@ function animate() {
 
    window.requestAnimationFrame(animate);
 
-   time += 0.005;
+   time += 0.01;
 
    var sint = Math.sin(time) * 200;
    var cost = Math.cos(time) * 200;
@@ -203,13 +203,8 @@ $(function() {
 			return false;
 
 		var canvas = $('<canvas></canvas>').appendTo('body');
-		var contexts = [
-			'webgl',
-			'experimental-webgl',
-			'moz-webgl',
-			'webkit-3d'
-		];
 
+		var contexts = ['webgl', 'experimental-webgl'];
 		for(var i in contexts)
 			if(canvas[0].getContext(contexts[i]))
 				return true;
