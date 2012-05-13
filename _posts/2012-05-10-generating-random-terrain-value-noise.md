@@ -44,9 +44,9 @@ not representable.
 
 With all that in mind, our only work here is to generate a height map
 representing a terrain. Let's start by randomly generating one of
-those. For each grid value (or pixel), we assign a random float
-between 0 and 1. If you click on the dark box below, you will see both
-the generated height map and the corresponding terrain (please be
+those. For each grid value (or pixel), we assign a random real number
+between *0* and *1*. If you click on the dark box below, you will see
+both the generated height map and the corresponding terrain (please be
 patient, the 3D terrain generation may freeze your browser for several
 seconds, sorry about that!).
 
@@ -81,8 +81,8 @@ noise](http://www.noisemachine.com/talk1/)) comes into play. The steps
 described below let us create a more natural-looking terrain from
 the random one we just generated:
 
-1. Sample *n* regular subsets of pixels where subset *n* contains
-every *2<sup>n</sup>*-th pixel
+1. Sample *n* regular subsets of pixels where subset *i* contains
+every *2<sup>i</sup>*-th pixel
 
 2. Fill the gaps between the selected pixels with some kind of
 interpolation
@@ -92,14 +92,14 @@ final height map
 
 ### Sampling
 
-Sampling the original random noise at different levels provides us the
-several layers of precision needed.  Each of these sampled maps is
-called an octave and is associated with a number starting from *0*
-where octave *i* is the layer containing every *2<sup>i</sup>* pixels
-from the original height map. You will note that octave *0* actually
-is the random terrain generated earlier because this sampling contains
-every pixel. This is also the reason why your height map dimensions
-must be powers of two like 256\*256 or 1024\*512.
+Sampling the original random noise at different levels provides us
+with the several layers of precision needed.  Each of these sampled
+maps is called an octave and is associated with a number starting from
+*0* where octave *i* is the layer containing every *2<sup>i</sup>*-th
+pixels from the original height map. You will note that octave *0*
+actually is the random terrain generated earlier because this sampling
+contains every pixel. This is also the reason why your height map
+dimensions must be powers of two like 256\*256 or 1024\*512.
 
 Let's take the following 64\*64 randomly generated height map as an
 example.
@@ -107,17 +107,17 @@ example.
 ![](/images/octave_base.png)
 
 As stated before, the octave *0* is the original image, so let's
-compute octave *1*. Only the *2n*-th pixels are kept.
+compute octave *1*. Only one in *2<sup>1</sup> = 2* pixels is kept.
 
 ![](/images/octave_1.png)
 ![](/images/octave_1b.png)
 
-For octave 2, only the *4n*-th pixels are kept.
+For octave 2, only one in *2<sup>2</sup> = 4* pixels is kept.
 
 ![](/images/octave_2.png)
 ![](/images/octave_2b.png)
 
-For octave 3, only the *8n*-th pixels are kept, and so on...
+For octave 3, only one in *2<sup>3</sup> = 8* pixels is kept, and so on...
 
 ![](/images/octave_3.png)
 ![](/images/octave_3b.png)
@@ -133,8 +133,8 @@ So we need to determine the values of absent pixels. Let's say we want
 to compute the height of pixel *P* of a given octave. To do so, we
 simply find in which square *P* is and interpolate the heights of its
 corners with respect to the distance from *P* to each corner. in the
-following illustration, *P* is the blue pixel and the corners of its
-square are red.
+following illustration, *P* is the blue pixel which height we want to
+compute and the corners of its square are red.
 
 ![](/images/octave_square.png)
 
@@ -168,18 +168,21 @@ function linear(a, b, x) {
 
 You will note that the given functions only work in 1D. To obtain the
 value of *P* from the four corner of the square (*C1*, *C2*, *C3*,
-*C4*, in clockwise order starting from the top left), we separately
-interpolate (*C1* and *C2*) and (*C3* and *C*4) which gives us the
-values of points respectively at the top and bottom lines of the
-square. Then we interpolate these two intermediate points. This
-process is known as bilinear interpolation.
+*C4*), we separately interpolate (*C1* and *C2*) and (*C3* and *C*4)
+using P abscissa as the *x* ratio which gives us the values of points
+respectively at the top and bottom lines of the square. Then we
+interpolate these two intermediate points using P ordinate as the
+ratio. This process is known as bilinear interpolation.
 
 ![](/images/octave_bilinear.png)
 
-The following demo shows the third and fifth octaves. The results
+So what we have to do simply is to apply this method on every empty
+pixel of each octave. The result is a collection of continuous octaves
+bearing varying granularities. The following demo shows the third and
+fifth octaves based on the random noise generated earlier. The results
 appear rather smooth because I used cosine interpolation instead of
 the linear one which would have produced more pointy hills but the
-principle is identical.
+principle is absolutely identical.
 
 <div class="try" id="try2">
 </div>
@@ -190,17 +193,94 @@ principle is identical.
 ### Summing up
 
 Let's summarize. From a unique random noise, we created octaves by
-regularly sampling pixels and we filled the voids using interpolation.
+regularly sampling pixels and we filled the voids in these using
+interpolation. The last step is to merge the octaves into a final
+height map.
 
-Now that we dispose of *n* octaves, we just need to assemble them into
-a unique image. In order to make good use of our different layers of
-precision, the influence of each of them in the final result is
-weighted. It's rather straightforward to assume that the octave with
-the largest frequency is going to help define the global relief
-whereas the one with the smallest frequency will only influe on small
-local details.
+It's rather straightforward to assume that the octave with the highest
+granularity is going to help define the global relief whereas the one
+with the smallest will only influe on small local details. The first
+intuition naturally is to average the height of the pixel from each
+octave. In the following equation *F<sub>x,y</sub>* is the height of
+the pixel at coordinates (*x*, *y*) in the final height map,
+*O<sub>i</sub>(x,y)* is the height of the same pixel in the *i*-th
+octave :
 
-WIP
+<div class="maths">
+F<sub>x,y</sub> = ( O<sub>0</sub>(x,y) + O<sub>1</sub>(x,y) + ... + O<sub>k</sub>(x,y) ) / (k + 1)
+</div>
+
+The sum of all heights is normalized so that the final height value
+still lies within *\[0,1\]*.
+
+But this not precise enough, with this formula the terrain will only
+look like random noise. In order to make good use of our different
+layers of precision, the influence of each of them in the final result
+is weighted and obviously the higher the octave, the higher its
+influence will be. This phenomenom can be simulated by a new fixed
+quantity, the persistence *P*, a real number between *0* and *1*
+describing the increase of influence of the higher octaves.
+
+<div class="maths">
+W<sub>i</sub> = P<sup>k - i</sup><br/><br/>
+with P = 0.55 and k = 7 :<br/><br/>
+W<sub>0</sub> = 0.55<sup>7</sup> = 0.0015<br/>
+W<sub>1</sub> = 0.55<sup>6</sup> = 0.027<br/>
+...<br/>
+W<sub>6</sub> = 0.55<sup>1</sup> = 0.55<br/>
+W<sub>7</sub> = 0.55<sup>0</sup> = 1
+</div>
+
+The merge formula becomes :
+
+<div class="maths">
+F<sub>x,y</sub> = ( O<sub>0</sub>(x,y) * W(0) + O<sub>1</sub>(x,y) * W(1) + ... + O<sub>k</sub>(x,y) * W(k) ) / ( W(0) + ... + W(k))
+</div>
+
+Note that the normalization part has changed to accomodate the various weights applied.
+
+Here is
+
+{% highlight javascript %}
+function valueNoise(x, y, k, source) {
+
+   // Compute the height of pixel (x,y) in octaves 0 to k.
+   var octaves = [source[x][y]];
+   for(var i = 1; i < k; ++i)
+		octaves.push = octave(x, y, i, source);
+
+   //
+   octaves.reverse();
+
+   // Start by adding the full height of the pixel from
+   // the last octave.
+   var height = octaves[octaves.length - 1];
+   var amplitude = 1;
+   var sumAmplitude = amplitude;
+
+   // Describes the drop-off of influence with each layer.
+   var persistence = 0.55;
+
+   for(var i = octaves.length - 2; i >= 0; --i) {
+
+      // Decrease the influence of the current octave.
+      amplitude = Math.pow(persistence, i);
+
+      // Add the weighted height of the pixel to the
+      // final height map.
+      height += octaves[i] * amplitude;
+
+      sumAmplitude += amplitude;
+   }
+
+   // Normalize the height.
+   height /= sumAmplitude;
+
+   return height;
+}
+{% endhighlight %}
+
+Behold, our final terrain!
 
 <div class="try" id="try4">
 </div>

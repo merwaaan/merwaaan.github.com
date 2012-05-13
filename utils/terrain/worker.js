@@ -118,15 +118,15 @@ function valueNoise(k, index) {
 
 	var height = octaves[0];
 
-   var persistence = 0.56;
+	var persistence = 0.56;
 	var amplitude = 1;
-   var sumAmplitude = amplitude;
+	var sumAmplitude = amplitude;
 
    for(var i = 1; i < octaves.length; ++i) {
 
 		amplitude = Math.pow(persistence, i);
 
-		height += octaves[i] * amplitude;
+	   height += octaves[i] * amplitude;
 
 		sumAmplitude += amplitude;
    }

@@ -34,6 +34,13 @@ img {
 img + img {
 	margin-left: 4em;
 }
+
 ol li {
 	list-style: decimal;
+}
+
+div.maths {
+	padding: 1em;
+	margin-bottom: 1em;
+	border: 1px solid lightgrey;
 }
