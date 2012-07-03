@@ -150,6 +150,15 @@ article pre {
 	margin-bottom: 2em;
 }
 
-#articles tr td {
+#articles tr td, #projects tr td {
 	padding-right: 1em;
+}
+
+#projects a {
+    text-decoration: underline;
+}
+
+h5 {
+    font-size: 110%;
+    color: grey;
 }

@@ -3,6 +3,8 @@ layout: default
 title: Archives
 ---
 
+<h5>Blog posts</h5>
+
 <table id="articles">
   {% for post in site.posts %}
   <tr>
@@ -10,4 +12,13 @@ title: Archives
     <td><a href="{{ post.url }}">{{ post.title }}</a></td>
   </tr>
   {% endfor %}
+</table>
+
+<h5>Personal works</h5>
+
+<table id="projects">
+  <tr>
+    <td class="soft">28 July 2012</td>
+    <td>Urban morphogenesis, <a href="http://merwaaan.github.com/city">slideshow</a> and <a href="http://merwaaan.github.com/city/rapport.pdf">report</a></td>
+  </tr>
 </table>
