@@ -33,11 +33,13 @@ var tileSize = 10;
 
 var player = {
 	pos: new Vector2(5,15),
-	dir: new Vector2(0,1)
+	dir: new Vector2(0,1),
+	linearVelocity: 0.1,
+	angularVelocity: Math.PI/50
 };
 
 var cameraPlane = {
-	dir: new Vector2(1,0),
+	dir: new Vector2(-1,0),
 	distance: 2,
 	width: 3,
 	resolution: 100
@@ -60,13 +62,13 @@ window.addEventListener('load', function() {
 	window.addEventListener('keydown', function(event) {
 
 		if(event.which == 38)
-			movePlayer(0.5);
+			movePlayer(player.linearVelocity);
 		else if(event.which == 40)
-			movePlayer(-0.5);
+			movePlayer(-player.linearVelocity);
 		else if(event.which == 37)
-			rotatePlayer(-Math.PI/10);
+			rotatePlayer(-player.angularVelocity);
 		else if(event.which == 39)
-			rotatePlayer(Math.PI/10);
+			rotatePlayer(player.angularVelocity);
 
 		draw(viewContext, mapContext);
 	});
