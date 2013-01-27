@@ -57,7 +57,7 @@ window.addEventListener('load', function() {
 
 	draw(viewContext, mapContext);
 
-	// Controls.
+	// Player controls.
 
 	window.addEventListener('keydown', function(event) {
 
@@ -72,6 +72,8 @@ window.addEventListener('load', function() {
 
 		draw(viewContext, mapContext);
 	});
+
+	// Display controls.
 
 	var distanceRange = document.querySelector('#cameraPlaneDistance');
 	distanceRange.addEventListener('change', function(event) {
@@ -99,18 +101,18 @@ window.addEventListener('load', function() {
 
 });
 
-function updateRangeValue(range) {
-	range.parentElement.nextElementSibling.innerHTML = '(' + range.value + ')';
-}
-
 function movePlayer(amplitude) {
-	if(ray(player.pos.copy(), player.dir.copy()).distance > 1)
+	if(ray(player.pos.copy(), amplitude > 0 ? player.dir.copy() : player.dir.copy().negate()).distance > 0.3)
 		player.pos.add(player.dir.copy().scale(amplitude));
 }
 
 function rotatePlayer(amplitude) {
 	player.dir.rotate(amplitude);
 	cameraPlane.dir = player.dir.copy().rotate(Math.PI/2);
+}
+
+function updateRangeValue(range) {
+	range.parentElement.nextElementSibling.innerHTML = '(' + range.value + ')';
 }
 
 function draw(viewContext, mapContext) {
