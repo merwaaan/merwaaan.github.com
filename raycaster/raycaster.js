@@ -71,22 +71,35 @@ window.addEventListener('load', function() {
 		draw(viewContext, mapContext);
 	});
 
-	document.querySelector('#cameraPlaneDistance').addEventListener('change', function(event) {
+	var distanceRange = document.querySelector('#cameraPlaneDistance');
+	distanceRange.addEventListener('change', function(event) {
 		cameraPlane.distance = event.target.value;
+		updateRangeValue(this);
 		draw(viewContext, mapContext);
 	});
+	updateRangeValue(distanceRange);
 
-	document.querySelector('#cameraPlaneWidth').addEventListener('change', function(event) {
+	var widthRange = document.querySelector('#cameraPlaneWidth');
+	widthRange.addEventListener('change', function(event) {
 		cameraPlane.width = event.target.value;
+		updateRangeValue(this);
 		draw(viewContext, mapContext);
 	});
+	updateRangeValue(widthRange);
 
-	document.querySelector('#cameraPlaneResolution').addEventListener('change', function(event) {
+	var resolutionRange = document.querySelector('#cameraPlaneResolution');
+	resolutionRange.addEventListener('change', function(event) {
 		cameraPlane.resolution = event.target.value;
+		updateRangeValue(this);
 		draw(viewContext, mapContext);
 	});
+	updateRangeValue(resolutionRange);
 
 });
+
+function updateRangeValue(range) {
+	range.parentElement.nextElementSibling.innerHTML = '(' + range.value + ')';
+}
 
 function movePlayer(amplitude) {
 	if(ray(player.pos.copy(), player.dir.copy()).distance > 1)
