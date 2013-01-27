@@ -27,8 +27,6 @@ h3 {
 	font-weight: normal;
 }
 
-
-
 .soft {
 	color: grey;
 	font-size: 0.85em;
@@ -145,12 +143,28 @@ article pre {
 	border: 1px solid lightgrey;
 }
 
-#articles, #projects {
+#publications, #projects {
 	margin-top: 1em;
 	margin-bottom: 2em;
 }
 
-#articles tr td, #projects tr td {
+#publications {
+	width: 50%;
+}
+
+#publications .who {
+
+}
+
+#publications .what {
+	font-weight: bold;
+}
+
+#publications .where {
+	font-style: italic;
+}
+
+#projects tr td {
 	padding-right: 1em;
 }
 
